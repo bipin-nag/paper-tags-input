@@ -1,9 +1,6 @@
 {
   "name": "paper-tags-input",
   "version": "1.2.2",
-  "authors": [
-    "Tianxiang Zhang <cenhiangapply@gmail.com>"
-  ],
   "description": "An input element for tags.",
   "keywords": [
     "web-component",
@@ -13,7 +10,6 @@
   ],
   "main": "paper-tags-input.html",
   "license": "http://polymer.github.io/LICENSE.txt",
-  "homepage": "https://github.com/cheonhyangzhang/paper-tags-input/",
   "ignore": [
   ],
   "dependencies": {
