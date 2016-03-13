@@ -15,8 +15,6 @@
   "license": "http://polymer.github.io/LICENSE.txt",
   "homepage": "https://github.com/cheonhyangzhang/paper-tags-input/",
   "ignore": [
-    "/test/",
-    "/demo/"
   ],
   "dependencies": {
     "polymer": "Polymer/polymer",
