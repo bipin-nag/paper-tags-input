@@ -11,6 +11,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../iron-input/iron-input.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="tag-item.html">
 
@@ -31,7 +32,7 @@ It may include an optional error message. For now, the tags list is case sensiti
 
 Tags list are stored in the property of tags.
 
-    <paper-tags-input tags="{{tags_list}}"></paper-tags-input>
+    <paper-tags-input tags="[[tags_list]]"></paper-tags-input>
 
 <b>Styling</b>
 
@@ -39,7 +40,7 @@ For the color of tags, it is using theme color --light-primary-color by default.
 
 But you can change the color by applying custom colors.
 
-    <paper-tags-input tag-color="red" font-color="#FFFFFF" tags="{{tags_list}}"></paper-tags-input>
+    <paper-tags-input tag-color="red" font-color="#FFFFFF" tags="[[tags_list]]"></paper-tags-input>
 
 <b>Internaltional</b>
 
@@ -71,19 +72,39 @@ If you want to save it in bower.json file, remember to add flag --save
      height: 0; 
      clear: both;
     }
+    
+    /deep/#tag-input .paper-input-container-0{
+        padding: 0px;
+    }
+    
+    /deep/ #tag-input .paper-input-container-0 .floated-label-placeholder{
+        display: none;
+    }
+    
+    /deep/input{
+        height: 20px !important;
+        color: #525252;
+        /*font-family: monospace;*/
+        font-size: 15px !important;
+        line-height: 14px;
+        font-stretch: normal;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: 300;
+    }
   </style>
 
   <template>
-  <h3>{{label}}</h3> 
-    <div class="clearfix" id="tags-items">
-    <template is="dom-repeat" items="{{tags}}">
-      <tag-item font-color="{{fontColor}}" tag-color="{{tagColor}}" size="{{size}}" tags="{{tags}}" enable-remove="{{enableRemove}}" index="{{index}}" value="{{item}}"></tag-item>
-      </div>
+  <!--<h3>[[label]]</h3> -->
+    <div class="clearfix" id="tags-items" style="margin-top:2px;">
+    <template is="dom-repeat" items="[[tags]]">
+      <tag-item font-color="[[fontColor]]" tag-color="[[tagColor]]" size="[[size]]"  tags="{{tags}}" enable-remove="[[enableRemove]]" index="[[index]]" tagvalue="[[item]]"></tag-item>
     </template>
     </div>
-     <template is="dom-if" if="{{enableAdd}}">
-       <paper-input id="tag-input" on-focusout="_focusOut" error-message="{{emptyErrorMessage}}" label="{{placeholder}}" on-keydown="_keyDown" value="{{input_value}}"></paper-input>
+     <template is="dom-if" if="[[enableAdd]]">
+       <paper-input id="tag-input" on-focusout="_focusOut" error-message="[[emptyErrorMessage]]" on-keydown="_keyDown" value="{{input_value}}" style="margin-top:2px;margin-bottom:20px;"></paper-input>
      </template>
+     
     
   </template>
 
@@ -102,8 +123,9 @@ If you want to save it in bower.json file, remember to add flag --save
        */
       tags:{
         type:Array,
-        notify: true,
+        notify:true,
         value:[],
+        // observer: 'nameChanged'
       },
       /**
       * the CSS color for the tag, e.g. #e5e5e5
@@ -127,6 +149,10 @@ If you want to save it in bower.json file, remember to add flag --save
         type:String,
         value:"Tag cannot be empty"
       },
+      commaErrorMessage:{
+        type:String,
+        value:"Comma not allowed"
+      },
       /**
        * Boolean flag for whether add tag operation is enabled.
        */
@@ -146,7 +172,7 @@ If you want to save it in bower.json file, remember to add flag --save
        */
       duplicateErrorMessage:{
         type:String,
-        value:"Tag must be identical"
+        value:"Tag must not be identical"
       },
       /**
        * The label that will show up as the label for tags input.
@@ -160,12 +186,20 @@ If you want to save it in bower.json file, remember to add flag --save
        */
       placeholder:{
         type:String,
-        value:'Please enter a new tag'
+        value:'Enter tags'
       },
       /**
        * Internal variable to hold the value of paper-input.
        */
-      _input_value: String,
+      input_value: {
+        type:String,
+        notify:true,
+        value:"",
+      },
+       name:{
+        type:String,
+        value:''
+       },
 
 
     },
@@ -173,6 +207,7 @@ If you want to save it in bower.json file, remember to add flag --save
     // Element Lifecycle
 
     ready: function() {
+        this.tags=[];
       // `ready` is called after all elements have been configured, but
       // propagates bottom-up. This element's children are ready, but parents
       // are not.
@@ -204,14 +239,18 @@ If you want to save it in bower.json file, remember to add flag --save
      * @param {string} the tag that needs to be added.
      */
     _addTag: function(tag){
+        // console.log(tag)
+        // return
       if (this.enableAdd == false){
         return;
       }
       if (typeof(this.tags) == 'undefined'){
         this.tags = [];
       }
-      this.tags.push(tag);
-      this.tags = this.tags.slice();  
+    //   this.tags.push(tag);
+    //   this.tags = this.tags.slice();
+        this.push('tags',tag)
+        this.tags = this.tags.slice();
     },
     /**
      * _getInputVal is the internal method to get the value of paper-input. It performs a trim on the value.
@@ -240,28 +279,55 @@ If you want to save it in bower.json file, remember to add flag --save
      * @param {object} event object
      */
     _keyDown: function(e) {
+    //   console.log(e)
       var keyVal = e.which;
-      if (keyVal == 13){
+      if (keyVal == 13 || keyVal == 188 ){
         if (this._getInputVal() == ""){
-          var input = Polymer.dom(this.root).querySelector('#tag-input');;
+          var input = Polymer.dom(this.root).querySelector('#tag-input');
+          console.log(input)
+          if (keyVal == 188)
+          input.errorMessage = this.commaErrorMessage;
+          else
           input.errorMessage = this.emptyErrorMessage;
           input.invalid=true;
+          e.preventDefault();
         }
         else if (this.tags.indexOf(this._getInputVal()) >= 0){
-          var input = Polymer.dom(this.root).querySelector('#tag-input');;
+          var input = Polymer.dom(this.root).querySelector('#tag-input');
+          console.log(input)
           input.errorMessage = this.duplicateErrorMessage;
           input.invalid=true;
+          e.preventDefault();
         }
         else{
           this._addTag(this._getInputVal());
           this.input_value = "";
+          e.preventDefault();
         }
       }
       else{
-          var input = Polymer.dom(this.root).querySelector('#tag-input');;
+          var input = Polymer.dom(this.root).querySelector('#tag-input');
           input.invalid=false;
         }
+    },
+    addTag: function(tag){
+      console.log('tag'+tag);
+      if (this.enableAdd == false){
+        return;
+      }
+      if (typeof(this.tags) == 'undefined'){
+        this.tags = [];
+      }
+      if (this.tags.indexOf(tag) === -1)
+      this.push('tags',tag)  
+    //   this.tags = this.tags.slice();
+    },
+    nameChanged: function(newFirstName, oldFirstName) {
+    // this.lastName could be undefined!
+    console.log('new name:', newFirstName, this.lastName);
     }
+
+
 
   });
 
